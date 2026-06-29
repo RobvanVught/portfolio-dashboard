@@ -69,12 +69,17 @@ eurusd = yf.download("EURUSD=X", period="5y", progress=False)["Close"].ffill()
 gbpeur = yf.download("GBPEUR=X", period="5y", progress=False)["Close"].ffill()
 
 def convert_to_eur(value, ticker):
+    # Zorg dat value altijd een enkel getal is
+    if isinstance(value, pd.Series):
+        value = value.squeeze()
+
     if ticker.endswith(".AS") or ticker.endswith(".DE"):
         return float(value)
     elif ticker.endswith(".L"):
         return float(value) * float(gbpeur.iloc[-1])
     else:
         return float(value) / float(eurusd.iloc[-1])
+
 
 # --- Portfolio value ---
 portfolio_values = []
