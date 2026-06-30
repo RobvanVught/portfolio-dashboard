@@ -106,7 +106,13 @@ for date in all_days:
 portfolio_df = pd.DataFrame(portfolio_values)
 
 # --- Dashboard layout ---
-tab1, tab2, tab3 = st.tabs(["📈 Totale waarde", "📊 Posities", "📉 Koersgrafieken"])
+tab1, tab2, tab3, tab4 = st.tabs([
+    "📈 Totale waarde",
+    "📊 Posities",
+    "📉 Koersgrafieken",
+    "📦 Waarde per belegging"
+])
+
 
 with tab1:
     st.subheader("Totale waarde over tijd")
@@ -146,3 +152,36 @@ with tab3:
     ax.set_title(f"{product} ({ticker})")
     ax.grid(True)
     st.pyplot(fig)
+
+
+with tab4:
+    st.subheader("Waarde van jouw positie over tijd")
+
+    product = st.selectbox("Kies een product", list(TICKER_MAP.keys()))
+    ticker = TICKER_MAP[product]
+
+    # Aantallen per dag
+    amounts = pivot[product]
+
+    # Koers per dag
+    series = price_data[product]
+
+    # Combineer tot één tijdreeks
+    df_pos = pd.DataFrame({
+        "date": all_days,
+        "aantal": amounts.values,
+        "koers": series.reindex(all_days).ffill().values
+    })
+
+    df_pos["waarde"] = df_pos["aantal"] * df_pos["koers"]
+
+    # Grafiek
+    fig, ax = plt.subplots(figsize=(10, 4))
+    ax.plot(df_pos["date"], df_pos["waarde"])
+    ax.set_title(f"Waarde van jouw {product} positie")
+    ax.grid(True)
+    st.pyplot(fig)
+
+    # Tabel
+    st.write("Details per dag:")
+    st.dataframe(df_pos)
